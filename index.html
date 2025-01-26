@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather Tracker by Asif</title>
+  <link rel="icon" type="image/png" href="image/wethr.png">
+  <link rel="stylesheet" href="https://unpkg.com/font-awesome/css/font-awesome.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-image: url("image/wethr.png");
+      font-family: 'Arial', sans-serif;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      text-align: center;
+      transition: background-color 0.5s ease;
+    }
+
+    .container {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 40px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      transition: all 0.5s ease;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      color: #f1c40f;
+    }
+
+    input {
+      padding: 12px;
+      font-size: 1rem;
+      margin-bottom: 15px;
+      width: 70%;
+      border: none;
+      border-radius: 5px;
+      outline: none;
+      color: #333;
+    }
+
+    button {
+      
+      padding: 12px 20px;
+      font-size: 1.1rem;
+      background-color: #28a745;
+      border: none;
+      border-radius: 5px;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    .weather-info {
+      margin-top: 20px;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    .weather-info h3 {
+      font-size: 2rem;
+      margin: 10px 0;
+    }
+
+    .weather-info p {
+      font-size: 1.2rem;
+      margin: 5px 0;
+    }
+
+    .weather-info .temp {
+      font-size: 3rem;
+      font-weight: bold;
+    }
+
+    .icon {
+      font-size: 4rem;
+      margin-top: 20px;
+    }
+
+    .error-message {
+      color: red;
+      font-size: 1.5rem;
+    }
+
+    /* Background change based on weather */
+    .clear-sky {
+      background-color: #ff7f50;
+    }
+
+    .cloudy {
+      background-color: #c0c0c0;
+    }
+
+    .rainy {
+      background-color: #4e73df;
+    }
+
+    .snowy {
+      background-color: #87CEFA;
+    }
+
+    .windy {
+      background-color: #3cb371;
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Weather Tracker App Develop By Asif😊</h1>
+    <h2>💻Check your city weather ✔</h2>
+    <h1>  </h1>
+    <input type="text" id="city" placeholder="Enter City" />
+    <button onclick="getWeather()">Get Weather</button>
+
+    <div class="weather-info" id="weather-info">
+      
+    </div>
+    <p class="error-message" id="error-message"></p>
+  </div>
+
+  <script>
+    const apiKey = 'b1ccd9b32f4efb9ebf350c797bd610ae'; 
+    function getWeather() {
+      const city = document.getElementById('city').value.trim();
+      const weatherInfo = document.getElementById('weather-info');
+      const errorMessage = document.getElementById('error-message');
+      weatherInfo.innerHTML = ''; 
+      errorMessage.innerHTML = '';
+
+      if (city === '') {
+        errorMessage.innerHTML = 'Please enter a city name!';
+        return;
+      }
+
+      // Fetch weather data from OpenWeatherMap API
+      fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.cod === '404') {
+            errorMessage.innerHTML = 'City not found! Please check the city name and try again.';
+            return;
+          }
+
+          const temperature = data.main.temp;
+          const humidity = data.main.humidity;
+          const description = data.weather[0].description;
+          const windSpeed = data.wind.speed;
+          const pressure = data.main.pressure;
+          const icon = data.weather[0].icon;
+
+          // Set background color based on weather condition
+          const weatherType = description.toLowerCase();
+          if (weatherType.includes('clear')) {
+            document.body.className = 'clear-sky';
+          } else if (weatherType.includes('cloud')) {
+            document.body.className = 'cloudy';
+          } else if (weatherType.includes('rain')) {
+            document.body.className = 'rainy';
+          } else if (weatherType.includes('snow')) {
+            document.body.className = 'snowy';
+          } else if (weatherType.includes('wind')) {
+            document.body.className = 'windy';
+          }
+
+          // Create weather info HTML
+          weatherInfo.innerHTML = `
+            <h3>${data.name}, ${data.sys.country}</h3>
+            <div class="temp">${temperature}°C</div>
+            <p>${description.charAt(0).toUpperCase() + description.slice(1)}</p>
+            <p>Humidity: ${humidity}%</p>
+            <p>Wind Speed: ${windSpeed} m/s</p>
+            <p>Pressure: ${pressure} hPa</p>
+            <i class="icon fa fa-${getWeatherIcon(icon)}"></i>
+          `;
+        })
+        .catch(error => {
+          console.error(error);
+          errorMessage.innerHTML = 'Error fetching weather data please check internet connection';
+        });
+    }
+
+    // Function to get the correct weather icon
+    function getWeatherIcon(icon) {
+      if (icon === '01d') return 'sun-o'; // Clear sky
+      if (icon === '02d' || icon === '02n') return 'cloud'; // Few clouds
+      if (icon === '03d' || icon === '03n') return 'cloud'; // Scattered clouds
+      if (icon === '04d' || icon === '04n') return 'cloud'; // Broken clouds
+      if (icon === '09d' || icon === '09n') return 'cloud-showers-heavy'; // Showers
+      if (icon === '10d' || icon === '10n') return 'cloud-rain'; // Rain
+      if (icon === '11d' || icon === '11n') return 'bolt'; // Thunderstorm
+      if (icon === '13d' || icon === '13n') return 'snowflake-o'; // Snow
+      if (icon === '50d' || icon === '50n') return 'smog'; // Mist
+    }
+
+    // Function to get weather based on user's location
+    function getUserLocationWeather() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+
+          fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`)
+            .then(response => response.json())
+            .then(data => {
+              const temperature = data.main.temp;
+              const description = data.weather[0].description;
+              const icon = data.weather[0].icon;
+
+              // Set background color based on weather
+              const weatherType = description.toLowerCase();
+              if (weatherType.includes('clear')) {
+                document.body.className = 'clear-sky';
+              } else if (weatherType.includes('cloud')) {
+                document.body.className = 'cloudy';
+              } else if (weatherType.includes('rain')) {
+                document.body.className = 'rainy';
+              }
+
+              document.getElementById('weather-info').innerHTML = `
+                <h3>Your Location</h3>
+                <div class="temp">${temperature}°C</div>
+                <p>${description.charAt(0).toUpperCase() + description.slice(1)}</p>
+                <i class="icon fa fa-${getWeatherIcon(icon)}"></i>
+              `;
+            })
+            .catch(error => {
+              console.error(error);
+              document.getElementById('error-message').innerHTML = 'Unable to retrieve your location';
+            });
+        });
+      } else {
+        document.getElementById('error-message').innerHTML = 'Geolocation is not supported by this browser.';
+      }
+    }
+
+    // Automatically fetch weather for user location when the page loads
+    window.onload = function() {
+      getUserLocationWeather();
+    }
+  </script>
+
+</body>
+</html>
